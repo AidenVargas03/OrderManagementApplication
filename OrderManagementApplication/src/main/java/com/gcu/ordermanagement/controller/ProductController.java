@@ -1,10 +1,8 @@
 package com.gcu.ordermanagement.controller;
 
-import com.gcu.ordermanagement.model.Products;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import com.gcu.ordermanagement.model.Product;
+import com.gcu.ordermanagement.repository.ProductRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -16,33 +14,35 @@ import jakarta.validation.Valid;
 @Controller
 @RequestMapping("/products")
 public class ProductController {
-    private List<Products> products = new ArrayList<>();
+
+    @Autowired
+    private ProductRepository productRepository;
 
     @GetMapping("/")
     public String displayProducts(Model model) {
         model.addAttribute("title", "Products");
-        model.addAttribute("product", new Products());
-        model.addAttribute("products", products);
+        model.addAttribute("product", new Product());
+        model.addAttribute("products", productRepository.findAll());
         return "products";
     }
 
     @PostMapping("/createProduct")
-    public String createProduct(@Valid Products product, BindingResult bindingResult, Model model) {
+    public String createProduct(@Valid Product product, BindingResult bindingResult, Model model) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("title", "Products");
-            model.addAttribute("products", products);
+            model.addAttribute("products", productRepository.findAll());
             return "products";
         }
 
-        if (product.getProductQuantity() > 0) {
-            products.add(product);
+        if (product.getQuantity() > 0) {
+            productRepository.save(product);
         }
         return "redirect:/products/";
     }
 
     @PostMapping("/removeProduct")
     public String removeProduct(Long itemId) {
-        products.removeIf(product -> product.getProductId().equals(itemId));
+        productRepository.deleteById(itemId);
         return "redirect:/products/";
     }
 }
